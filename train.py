@@ -21,7 +21,7 @@ def train_batch_depth_estimation(model, train_loader, criterion, optimizer, epoc
         images = images["depth8"].to(device)
         #images = images.squeeze()#FIXME added to unify channels and sequence length; to sub it for reshape
         #images.shape: [batch_size, sequence_length, channels, height, width]
-        #images = images.reshape((images.shape[0], images.shape[1]*images.shape[2], images.shape[3], images.shape[4] ))----> NOT NEEDED FOR 3D CONVOLUTIONS
+        images = images.reshape((images.shape[0], images.shape[1]*images.shape[2], images.shape[3], images.shape[4] ))#----> NOT NEEDED FOR 3D CONVOLUTIONS
         optimizer.zero_grad()
         out, latent = model(images)
         loss = criterion(out, images[:, 0, :][:, None])#Selected the last frame of the sequence to reconstruct it. 0 to select the first frame(depth reconstruction)
@@ -59,7 +59,7 @@ def evaluate_batch(model, loader, criterion, device):
     with torch.no_grad():
         for images in tqdm(loader, desc=f'Evaluating', leave=True):
             images = images["depth8"].to(device)
-            #images = images.reshape((images.shape[0], images.shape[1]*images.shape[2], images.shape[3], images.shape[4] ))----> NOT NEEDED FOR 3D CONVOLUTIONS
+            images = images.reshape((images.shape[0], images.shape[1]*images.shape[2], images.shape[3], images.shape[4] ))#----> NOT NEEDED FOR 3D CONVOLUTIONS
             out, latent = model(images)
             #Note that the normalization is already applied to the groundtruth as well as the 
             # sequence in input!!

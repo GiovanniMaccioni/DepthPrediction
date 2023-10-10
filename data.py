@@ -105,7 +105,7 @@ class BaxterJointsSynthDataset(Dataset):
         self.sequence_length = sequence_length
 
     def __len__(self):
-        #TOCHECK Don't know if modifying the length like is a BAD PRACTICE 
+        #TOCHECK Don't know if modifying the length like this is a BAD PRACTICE 
         return len(self.data[self.mode]) - self.sequence_length
 
     def __getitem__(self, idx):
