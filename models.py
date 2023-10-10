@@ -14,7 +14,7 @@ class Encoder(nn.Module):
     def __init__(self):
         super().__init__()
         #For the first convolution, we have input channels = 1. 32 and 3 are chosen arbitrarly for now
-        self.conv1 = ConvBlock(1, 32, 3)#The input channels depend on the sequence length chosen
+        self.conv1 = ConvBlock(1*10, 32, 3)#The input channels depend on the sequence length chosen
         self.conv2 = ConvBlock(32, 64, 3)
         self.conv3 = ConvBlock(64, 128, 3)
         self.conv4 = ConvBlock(128, 256, 3)

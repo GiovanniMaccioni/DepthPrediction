@@ -59,7 +59,7 @@ def init_worker(worker_id):
 class BaxterJointsSynthDataset(Dataset):
     def __init__(self, dataset_dir: Path, run: list, init_mode: str = 'train', norm_type: str = 'mean_std',
                  depth_range: tuple = (500, 3380, 15), depth_range_type: str = 'normal', demo: bool = False,
-                 img_size: tuple = (384, 216), sequence_length: int = 5) :
+                 img_size: tuple = (384, 216), sequence_length: int = 5, time_horizon: int = 0, output_fps: int = 2) :
         """Load Baxter robot synthetic dataset
 
         Parameters
@@ -79,7 +79,11 @@ class BaxterJointsSynthDataset(Dataset):
         demo: bool
             Useful for loading a portion of the dataset when debugging.
         sequence_length: int
-            number of frames to pick from the dataset. It can correspond to past+next(depth prediction) or past+current(depth reconstruction/estimation) 
+            number of frames to pick from the dataset. It can correspond to past+next(depth prediction) or past+current(depth reconstruction/estimation)
+        time_horizion: float
+            these parameter will indicate
+        output_fps: int
+            
         """
         assert init_mode in ['train', 'test']
 
@@ -205,6 +209,10 @@ class BaxterJointsSynthDataset(Dataset):
                     seq = info[-3]
                     sub_seq = info[-2]
                     img_name = Path(rgb_file).stem
+
+                    #TODO From here take the parent directory of the image file(.jpg) and use it to divide the sequences
+                    #The data structure could be a nested list where each element of the main list will be a sequence 
+                    #
 
                     # camera, depth, joints and picknplace file and data
                     #TOCHECK Had to add these

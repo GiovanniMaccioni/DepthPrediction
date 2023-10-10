@@ -24,7 +24,7 @@ def train_batch_depth_estimation(model, train_loader, criterion, optimizer, epoc
         images = images.reshape((images.shape[0], images.shape[1]*images.shape[2], images.shape[3], images.shape[4] ))#----> NOT NEEDED FOR 3D CONVOLUTIONS
         optimizer.zero_grad()
         out, latent = model(images)
-        loss = criterion(out, images[:, 0, :][:, None])#Selected the last frame of the sequence to reconstruct it. 0 to select the first frame(depth reconstruction)
+        loss = criterion(out, images[:, 9, :][:, None])#Selected the last frame of the sequence to reconstruct it. 0 to select the first frame(depth reconstruction)
         loss.backward()
         optimizer.step()
 
@@ -63,7 +63,7 @@ def evaluate_batch(model, loader, criterion, device):
             out, latent = model(images)
             #Note that the normalization is already applied to the groundtruth as well as the 
             # sequence in input!!
-            loss = criterion(out, images[:, 0, :][:, None])
+            loss = criterion(out, images[:, 9, :][:, None])
 
             running_loss += loss.item()
 
