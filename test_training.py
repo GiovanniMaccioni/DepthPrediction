@@ -10,17 +10,17 @@ device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cp
 
 #x = torch.randn(1, 5*1, 424, 512)#[batch_size, sequence_len*channels, height, width]
 
-trainset =  D.BaxterJointsSynthDataset("./data/dataset", [0], "train", demo = True, img_size=(512, 424), sequence_length=10)
+trainset =  D.BaxterJointsSynthDataset("./data/dataset", [0], "train", demo = False, img_size=(512, 424), sequence_length=1, norm_type="min_max")
 trainset.train()
-trainloader = torch.utils.data.DataLoader(trainset, batch_size=1,
-                                        shuffle=True, num_workers=1,
+trainloader = torch.utils.data.DataLoader(trainset, batch_size=4,
+                                        shuffle=True, num_workers=10,
                                         worker_init_fn=D.init_worker, drop_last=True)
 
 
-valset =  D.BaxterJointsSynthDataset("./data/dataset", [0], "train", demo = True, img_size=(512, 424), sequence_length=10)
+valset =  D.BaxterJointsSynthDataset("./data/dataset", [0], "train", demo = False, img_size=(512, 424), sequence_length=1)
 valset.eval()
-valloader =  torch.utils.data.DataLoader(valset, batch_size=1,
-                                    shuffle=False, num_workers=16,
+valloader =  torch.utils.data.DataLoader(valset, batch_size=4,
+                                    shuffle=False, num_workers=10,
                                     worker_init_fn=D.init_worker, drop_last=True)
 
 

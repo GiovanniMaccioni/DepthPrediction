@@ -11,8 +11,8 @@ class ConvBlock(nn.Module):
         super().__init__()
         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size, padding=1, stride=stride)
         self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size, padding=1, stride=stride)
-        #self.actv = nn.ReLU()
-        self.actv = nn.Tanh()
+        self.actv = nn.ReLU()
+        #self.actv = nn.Tanh()
     
     def forward(self, x):
         x = self.conv1(x)
@@ -27,7 +27,8 @@ class ConvTranspBlock(nn.Module):
         super().__init__()
         self.conv_tr1 = nn.ConvTranspose2d(in_channels, out_channels, kernel_size, padding=1, stride=stride)
         self.conv_tr2 = nn.ConvTranspose2d(out_channels, out_channels, kernel_size, padding=1, stride=stride)
-        self.actv = nn.Tanh()
+        #self.actv = nn.Tanh()
+        self.actv = nn.ReLU()
     
     def forward(self, x):
         x = self.actv(x)

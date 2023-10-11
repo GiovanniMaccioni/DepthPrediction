@@ -14,22 +14,22 @@ class Encoder(nn.Module):
     def __init__(self):
         super().__init__()
         #For the first convolution, we have input channels = 1. 32 and 3 are chosen arbitrarly for now
-        self.conv1 = ConvBlock(1*10, 32, 3)#The input channels depend on the sequence length chosen
+        self.conv1 = ConvBlock(1*1, 32, 3)#The input channels depend on the sequence length chosen
         self.conv2 = ConvBlock(32, 64, 3)
-        self.conv3 = ConvBlock(64, 128, 3)
-        self.conv4 = ConvBlock(128, 256, 3)
+        """self.conv3 = ConvBlock(64, 128, 3)
+        self.conv4 = ConvBlock(128, 256, 3)"""
         self.pool = nn.MaxPool2d(3, stride=2, padding=1)
     
     def forward(self, input_sequence):
         x = self.conv1(input_sequence)
         x = self.conv2(x)
         x = self.pool(x)
-        x = self.conv3(x)
+        """x = self.conv3(x)
 
         #x = self.pool(x)
 
         x = self.conv4(x)
-        x = self.pool(x)
+        x = self.pool(x)"""
         """x = self.tcn5(x)
         x = self.tcn6(x)"""
 
@@ -194,8 +194,9 @@ class Autoencoder_conv(nn.Module):
         self.conv2d_tr1 = nn.ConvTranspose2d(256, 256, kernel_size = [4, 4], stride = [2, 2], padding = [3, 1])
         self.conv2d_tr2 = nn.ConvTranspose2d(256, 256, kernel_size = [2, 4], stride = [2, 2], padding = [7, 1])
 
-        self.actv = nn.Tanh()
-    
+        #self.actv = nn.Tanh()
+        self.actv = nn.ReLU()
+
     def encode(self, input_sequence):
         return self.enc(input_sequence)
     

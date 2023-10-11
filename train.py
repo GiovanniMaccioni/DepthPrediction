@@ -1,6 +1,8 @@
 import torch
 from tqdm import tqdm
 
+import utils as U
+
 #import wandb
 
 def train(model, train_loader, validation_loader, criterion, optimizer, device, epochs):#FIXME removed config
@@ -17,6 +19,7 @@ def train_batch_depth_estimation(model, train_loader, criterion, optimizer, epoc
     model.train()
     running_loss = 0
     num_batches = len(train_loader)
+    iter = 0
     for images in tqdm(train_loader, desc=f'Training epoch {epoch}', leave=True):
         images = images["depth8"].to(device)
         #images = images.squeeze()#FIXME added to unify channels and sequence length; to sub it for reshape
@@ -24,11 +27,15 @@ def train_batch_depth_estimation(model, train_loader, criterion, optimizer, epoc
         images = images.reshape((images.shape[0], images.shape[1]*images.shape[2], images.shape[3], images.shape[4] ))#----> NOT NEEDED FOR 3D CONVOLUTIONS
         optimizer.zero_grad()
         out, latent = model(images)
-        loss = criterion(out, images[:, 9, :][:, None])#Selected the last frame of the sequence to reconstruct it. 0 to select the first frame(depth reconstruction)
+        loss = criterion(out, images[:, 0, :][:, None])#Selected the last frame of the sequence to reconstruct it. 0 to select the first frame(depth reconstruction)
         loss.backward()
         optimizer.step()
 
+        if iter % 1000 == 0:
+                U.show_depths([images[0], out[0]])
+
         running_loss += loss.item()/num_batches #TOCHECK L1 norm?
+        iter = iter + 1
         
     
     return running_loss
@@ -63,7 +70,10 @@ def evaluate_batch(model, loader, criterion, device):
             out, latent = model(images)
             #Note that the normalization is already applied to the groundtruth as well as the 
             # sequence in input!!
-            loss = criterion(out, images[:, 9, :][:, None])
+            #FIXME this acces to the image is bad thought
+            loss = criterion(out, images[:, 0, :][:, None])
+
+            #U.show_depths([images[0], out[0]])
 
             running_loss += loss.item()
 

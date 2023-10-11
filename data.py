@@ -110,13 +110,23 @@ class BaxterJointsSynthDataset(Dataset):
 
     def __len__(self):
         #TOCHECK Don't know if modifying the length like this is a BAD PRACTICE 
-        return len(self.data[self.mode]) - self.sequence_length
+        return self.data[self.mode]["len"]
 
     def __getitem__(self, idx):
         #Assuming that the sequence length is a dividor for the dataset length
         sample_sequence = []
+        len_action = len(self.data[self.mode]["depth8_file"][idx])
+        #random action indices. It will be between 0 and len(action) - self.sequence_length
+        #FIXME set seeds!!
+        index_act = np.random.randint(0, len_action - self.sequence_length + 1)
+
         for i in range(self.sequence_length):
-            sample_sequence.append(self.data[self.mode][idx+i].copy())
+            #FIXME now I have to access the key depth8_file
+
+            #Before there was copy because it was an element of the dictionary
+            """
+            sample_sequence.append(self.data[self.mode][idx][index_act+i].copy())"""
+            sample_sequence.append(self.data[self.mode]["depth8_file"][idx][index_act+i])#.copy())
             #sample = self.data[self.mode][idx].copy()
 
         depth_sequence = []
@@ -124,7 +134,8 @@ class BaxterJointsSynthDataset(Dataset):
         for sample in sample_sequence:
 
             # image loading (depth and/or RGB)
-            depth8_img = torchvision.io.read_image(sample['depth8_file']).to(torch.float32)
+            #depth8_img = torchvision.io.read_image(sample['depth8_file']).to(torch.float32)
+            depth8_img = torchvision.io.read_image(sample).to(torch.float32)
             depth8_img = TVF.resize(depth8_img, (self.img_size[1], self.img_size[0]), interpolation = TVF.InterpolationMode.NEAREST)
 
             # image size divided by 32 should be an even value (for SH network)
@@ -188,8 +199,13 @@ class BaxterJointsSynthDataset(Dataset):
             splits = ['train', 'val']
         else:
             splits = ['test']
+
+        #this initailization serves to instantiate an empty dictionary, to which the keys and valus will
+        #be added in the following for cycles
         data = defaultdict(list)
+
         for split in splits:
+            actions = [] #this
             iter = 0
             for run in self.run:
                 with (self.dataset_dir / 'splits' / f'{split}_rgb_run_{run}.txt').open('r') as fd:
@@ -202,13 +218,38 @@ class BaxterJointsSynthDataset(Dataset):
                         rgb_files = rgb_files[:300]
                     else:
                         rgb_files = rgb_files[:600]
+                
+                first_file = True
+                current_camera = ""
+                current_seq = ""
+                current_sub = ""
+                number_of_actions = 0 #This will indicate the total number of actions recorded for the robot.
 
                 for rgb_file in tqdm(rgb_files, f'Loading {split} set run {run}'):
+                        
                     info = rgb_file.split('/')
                     camera = info[-4]
                     seq = info[-3]
                     sub_seq = info[-2]
                     img_name = Path(rgb_file).stem
+
+                    #If it is the first iteration, initialize the "current" variables to do comparison
+                    if first_file:
+                        current_camera = camera
+                        current_seq = seq
+                        current_sub = sub_seq
+                        actions.append([])
+                        first_file = False
+
+                    #if any of the directory name changes, it means it is a different action of the robot(or the same from another view
+                    # but counted as different for training purposes)
+                    if (current_camera != camera) or (current_seq != seq) or (current_sub != sub_seq):
+                        current_camera = camera
+                        current_seq = seq
+                        current_sub = sub_seq
+                        actions.append([])
+                        number_of_actions += 1
+
 
                     #TODO From here take the parent directory of the image file(.jpg) and use it to divide the sequences
                     #The data structure could be a nested list where each element of the main list will be a sequence 
@@ -223,10 +264,13 @@ class BaxterJointsSynthDataset(Dataset):
 
                     iter += 1
 
-                    sample = {
-                        'depth8_file': depth8_file
+                    actions[number_of_actions].append(depth8_file)
+
+                sample = {
+                        'depth8_file': actions,
+                        'len': len(actions)
                     }
 
-                    data[split].append(sample)
+                data[split] = sample
 
         return data
