@@ -104,13 +104,13 @@ def evaluate_batch(model, loader, criterion, device):
             if i == 0:
                 max_ = images[0, 0, :].detach().cpu().max().float()
                 min_ = images[0, 0, :].detach().cpu().min().float()
-                image = torchvision.transforms.functional.to_pil_image(images[0, 0, :], mode=None)
-                gt = wandb.Image(image, caption=f"Ground truth, range {min_:0.3f}-{max_:0.3f}")
+                image_gt = torchvision.transforms.functional.to_pil_image(images[0, 0, :], mode=None)
+                gt = wandb.Image(image_gt, caption=f"Ground truth, range {min_:0.3f}-{max_:0.3f}")
 
                 max_ = out[0].detach().cpu().max().float()
                 min_ = out[0].detach().cpu().min().float()
-                image = torchvision.transforms.functional.to_pil_image(images[0, 0, :], mode=None)
-                predicted = wandb.Image(image, caption=f"Predicted, range {min_:0.3f}-{max_:0.3f}")
+                image_out = torchvision.transforms.functional.to_pil_image(out[0], mode=None)
+                predicted = wandb.Image(image_out, caption=f"Predicted, range {min_:0.3f}-{max_:0.3f}")
                 image_logging = {"Ground Truth": gt, "Predicted": predicted}
 
     return running_loss, image_logging

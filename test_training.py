@@ -34,7 +34,7 @@ valloader =  torch.utils.data.DataLoader(valset, batch_size=config["batch_size"]
 
 
 #TOCHECK I don't know if I have to do the XYZ transformation as said in the paper
-with T.wandb.init(project="experiment1-reconstruction", name="conv2d", config = config, mode="disabled"):
+with T.wandb.init(project="experiment1-reconstruction", name="conv2d", config = config):#, mode="disabled"
 
     encoder = M.Encoder()
     decoder = M.Decoder()
@@ -44,6 +44,8 @@ with T.wandb.init(project="experiment1-reconstruction", name="conv2d", config = 
 
     criterion = torch.nn.L1Loss()
     optimizer = torch.optim.Adam(model.parameters(), config['lr'])
+
+    T.wandb.watch(model, criterion, log="all", log_freq=1)
 
     T.train(model, trainloader, valloader, criterion, optimizer, device, config['epochs'])
 
