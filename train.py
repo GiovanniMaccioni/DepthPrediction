@@ -18,10 +18,9 @@ def train_batch_depth_estimation(model, train_loader, criterion, optimizer, epoc
     model.train()
     running_loss = 0
     num_batches = len(train_loader)
-    iter = 0
     #Progress Bar
     progress_bar = tqdm(total = len(train_loader), unit='step')
-    for images in train_loader:
+    for i, images in enumerate(train_loader):
         images = images["depth8"].to(device)
         #images = images.squeeze()#FIXME added to unify channels and sequence length; to sub it for reshape
         #images.shape: [batch_size, sequence_length, channels, height, width]
@@ -32,11 +31,10 @@ def train_batch_depth_estimation(model, train_loader, criterion, optimizer, epoc
         loss.backward()
         optimizer.step()
 
-        if iter % 1000 == 0:
+        if i % 1000 == 0:
                 U.show_depths([images[0], out[0]])
 
         running_loss += loss.item()/num_batches #TOCHECK L1 norm?
-        iter = iter + 1
 
         #Progress Bar
         progress_bar.set_description(f"Epoch {epoch}")
@@ -50,6 +48,7 @@ def train_batch_depth_prediction(model, train_loader, criterion, optimizer, epoc
     model.train()
     running_loss = 0
     num_batches = len(train_loader)#TOCHECK Maybe it returns the len - sequence length because of the bad practice in the dataset class
+
     for images in tqdm(train_loader, desc=f'Training epoch {epoch}', leave=True):
         images = images.to(device)
         optimizer.zero_grad()
@@ -74,7 +73,7 @@ def evaluate_batch(model, loader, criterion, device):
     progress_bar = tqdm(total = len(loader), unit='step')
 
     with torch.no_grad():
-        for images in loader:
+        for i, images in enumerate(loader):
             images = images["depth8"].to(device)
             images = images.reshape((images.shape[0], images.shape[1]*images.shape[2], images.shape[3], images.shape[4] ))#----> NOT NEEDED FOR 3D CONVOLUTIONS
             out, latent = model(images)

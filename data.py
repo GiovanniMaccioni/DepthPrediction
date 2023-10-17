@@ -59,7 +59,7 @@ def init_worker(worker_id):
 class BaxterJointsSynthDataset(Dataset):
     def __init__(self, dataset_dir: Path, run: list, init_mode: str = 'train', norm_type: str = 'mean_std',
                  depth_range: tuple = (500, 3380, 15), depth_range_type: str = 'normal', demo: bool = False,
-                 img_size: tuple = (384, 216), sequence_length: int = 5, time_horizon: int = 0, output_fps: int = 2) :
+                 img_size: tuple = None, sequence_length: int = 5, time_horizon: int = 0, output_fps: int = 2) :
         """Load Baxter robot synthetic dataset
 
         Parameters
@@ -71,7 +71,7 @@ class BaxterJointsSynthDataset(Dataset):
         init_mode: str
             Loading mode (train -> train/val set, test -> test set).
         img_size: str
-            Image dimensions to which resize dataset images.
+            Image dimensions to which resize dataset images. If None,  the image is not resized, so it will the be 768x432
         norm_type: str
             Type of normalization (min_max, mean_std supported).
         TOCHECK surrounding_removals: bool
@@ -136,7 +136,10 @@ class BaxterJointsSynthDataset(Dataset):
             # image loading (depth and/or RGB)
             #depth8_img = torchvision.io.read_image(sample['depth8_file']).to(torch.float32)
             depth8_img = torchvision.io.read_image(sample).to(torch.float32)
-            depth8_img = TVF.resize(depth8_img, (self.img_size[1], self.img_size[0]), interpolation = TVF.InterpolationMode.NEAREST)
+
+            #FIXME The images are larger than 424*512!!!
+            if self.img_size != None:
+                depth8_img = TVF.resize(depth8_img, (self.img_size[1], self.img_size[0]), interpolation = TVF.InterpolationMode.NEAREST)
 
             # image size divided by 32 should be an even value (for SH network)
             #TOCHECK I think other than to have the values divisible by 32, this removes the
