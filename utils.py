@@ -1,5 +1,7 @@
 import torch
 import numpy as np
+import random
+
 import matplotlib.pyplot as plt
 
 
@@ -18,4 +20,10 @@ def show_depths(depths):
 
     plt.show()
     plt.close(fig)
-    
+
+def set_seed(seed):
+    torch.manual_seed(seed)
+    random.seed(seed)
+    np.random.seed(seed)
+    #torch.use_deterministic_algorithms(True)
+    return

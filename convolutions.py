@@ -38,6 +38,23 @@ class ConvTranspBlock(nn.Module):
 
         return x
     
+class TemporalExpansion(nn.Module):
+    def __init__(self, sequence_length):
+        super().__init__()
+        """
+        2d convolutions with kernel size only the expand the number of channels
+        """
+        self.conv1 = nn.Conv2d(sequence_length, 128, 1)
+        self.conv2 = nn.Conv2d(128, 256, 1)
+        self.actv = nn.Tanh()
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.actv(x)
+        x = self.conv2(x)
+        x = self.actv(x)
+        return x
+    
 """
 Temporal Convolutional Networks; These 
 """
@@ -78,7 +95,7 @@ This is for the autoencoder with TCNs. Image size (424, 512)
 """
 Module to expand th channels before the dilated 3d convolutions
 """
-class TemporalExpansion(nn.Module):
+class TemporalExpansion3d(nn.Module):
     def __init__(self, sequence_length):
         super().__init__()
         """
