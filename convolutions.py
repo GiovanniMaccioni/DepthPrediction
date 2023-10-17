@@ -46,7 +46,7 @@ class TemporalExpansion(nn.Module):
         """
         self.conv1 = nn.Conv2d(sequence_length, 128, 1)
         self.conv2 = nn.Conv2d(128, 256, 1)
-        self.actv = nn.Tanh()
+        self.actv = nn.ReLU()
 
     def forward(self, x):
         x = self.conv1(x)

@@ -10,7 +10,8 @@ config ={
     'lr': 3e-3,
     'sequence_length':1,
     'img_size': None, #(512, 424),
-    'img_norm': "min_max"
+    'img_norm': "min_max",#mean_std
+    'epochs': 10
 }
 
 U.set_reproducibility(config['seed'])
@@ -21,14 +22,14 @@ device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cp
 trainset =  D.BaxterJointsSynthDataset("./data/dataset", [0], "train", demo = False, img_size=config["img_size"], sequence_length=1)
 trainset.train()
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=config["batch_size"],
-                                        shuffle=True, num_workers=1,
+                                        shuffle=True, num_workers=16,
                                         worker_init_fn=D.init_worker, drop_last=True)
 
 
 valset =  D.BaxterJointsSynthDataset("./data/dataset", [0], "train", demo = False, img_size=config["img_size"], sequence_length=1)
 valset.eval()
 valloader =  torch.utils.data.DataLoader(valset, batch_size=config["batch_size"],
-                                    shuffle=False, num_workers=1,
+                                    shuffle=False, num_workers=16,
                                     worker_init_fn=D.init_worker, drop_last=True)
 
 
@@ -44,7 +45,7 @@ with T.wandb.init(project="experiment1-reconstruction", name="conv2d", config = 
     criterion = torch.nn.L1Loss()
     optimizer = torch.optim.Adam(model.parameters(), config['lr'])
 
-    T.train(model, trainloader, valloader, criterion, optimizer, device, 10)
+    T.train(model, trainloader, valloader, criterion, optimizer, device, config['epochs'])
 
 T.wandb.finish()
 

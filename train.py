@@ -5,12 +5,14 @@ import utils as U
 
 import wandb
 
+import torchvision
+
 def train(model, train_loader, validation_loader, criterion, optimizer, device, epochs):#FIXME removed config
     for epoch in range(epochs):
-        loss_epoch = train_batch_depth_estimation(model, train_loader, criterion, optimizer, epoch, device)
-        val_loss = evaluate_batch(model, validation_loader, criterion, device)
+        loss_epoch, image_logging_t = train_batch_depth_estimation(model, train_loader, criterion, optimizer, epoch, device)
+        val_loss, image_logging_v = evaluate_batch(model, validation_loader, criterion, device)
 
-        wandb.log({"Train Loss": loss_epoch, "Validation Loss": val_loss})
+        wandb.log({"Train Loss": loss_epoch, "Validation Loss": val_loss}|image_logging_t|image_logging_v)
 
     return 
 
@@ -31,18 +33,26 @@ def train_batch_depth_estimation(model, train_loader, criterion, optimizer, epoc
         loss.backward()
         optimizer.step()
 
-        if i % 1000 == 0:
-                U.show_depths([images[0], out[0]])
-
         running_loss += loss.item()/num_batches #TOCHECK L1 norm?
 
         #Progress Bar
         progress_bar.set_description(f"Epoch {epoch}")
         progress_bar.set_postfix(loss=running_loss)
         progress_bar.update(1)
-        
-    
-    return running_loss
+
+        if i == 0:
+            max_ = images[0, 0, :].detach().cpu().max().float()
+            min_ = images[0, 0, :].detach().cpu().min().float()
+            image = torchvision.transforms.functional.to_pil_image(images[0, 0, :], mode=None)
+            gt = wandb.Image(image, caption=f"Ground truth, range {min_:0.3f}-{max_:0.3f}")
+
+            max_ = out[0].detach().cpu().max().float()
+            min_ = out[0].detach().cpu().min().float()
+            image = torchvision.transforms.functional.to_pil_image(images[0, 0, :], mode=None)
+            predicted = wandb.Image(image, caption=f"Predicted, range {min_:0.3f}-{max_:0.3f}")
+            image_logging = {"Ground Truth": gt, "Predicted": predicted}
+
+    return running_loss, image_logging
 
 def train_batch_depth_prediction(model, train_loader, criterion, optimizer, epoch, device):
     model.train()
@@ -91,4 +101,16 @@ def evaluate_batch(model, loader, criterion, device):
             progress_bar.set_postfix(loss=running_loss)
             progress_bar.update(1)
 
-    return running_loss
+            if i == 0:
+                max_ = images[0, 0, :].detach().cpu().max().float()
+                min_ = images[0, 0, :].detach().cpu().min().float()
+                image = torchvision.transforms.functional.to_pil_image(images[0, 0, :], mode=None)
+                gt = wandb.Image(image, caption=f"Ground truth, range {min_:0.3f}-{max_:0.3f}")
+
+                max_ = out[0].detach().cpu().max().float()
+                min_ = out[0].detach().cpu().min().float()
+                image = torchvision.transforms.functional.to_pil_image(images[0, 0, :], mode=None)
+                predicted = wandb.Image(image, caption=f"Predicted, range {min_:0.3f}-{max_:0.3f}")
+                image_logging = {"Ground Truth": gt, "Predicted": predicted}
+
+    return running_loss, image_logging
