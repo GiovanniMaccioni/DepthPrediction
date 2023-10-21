@@ -14,22 +14,24 @@ class Encoder(nn.Module):
     def __init__(self):
         super().__init__()
         #For the first convolution, we have input channels = 1. 32 and 3 are chosen arbitrarly for now
-        self.conv1 = ConvBlock(1*1, 32, 3)#The input channels depend on the sequence length chosen
-        self.conv2 = ConvBlock(32, 64, 3)
-        """self.conv3 = ConvBlock(64, 128, 3)
-        self.conv4 = ConvBlock(128, 256, 3)"""
+        self.conv1 = ConvBlockRes(1*1, 8, 3)#The input channels depend on the sequence length chosen
+        self.conv2 = ConvBlockRes(8, 12, 3)
+        self.conv3 = ConvBlockRes(12, 16, 3)
+        self.conv4 = ConvBlockRes(16, 20, 3)
+        self.conv5 = ConvBlockRes(20, 24, 3)
+        self.conv6 = ConvBlockRes(24, 28, 3)
         self.pool = nn.MaxPool2d(3, stride=2, padding=1)
     
     def forward(self, x):
         x = self.conv1(x)
         x = self.conv2(x)
         x = self.pool(x)
-        """x = self.conv3(x)
-
-        #x = self.pool(x)
-
+        x = self.conv3(x)
         x = self.conv4(x)
-        x = self.pool(x)"""
+        x = self.pool(x)
+        x = self.conv5(x)
+        x = self.conv6(x)
+        x = self.pool(x)
         """x = self.tcn5(x)
         x = self.tcn6(x)"""
 
@@ -40,13 +42,13 @@ class Encoder(nn.Module):
 class Decoder(nn.Module):
     def __init__(self):
         super().__init__()
-        """self.tcn1_tr = TCN_tr_v1(1024, 512, 3, 5)
-        self.tcn2_tr = TCN_tr_v1(512, 256, 3, 4)"""
-        """self.conv_tr1 = ConvTranspBlock(256, 128, 3)
-        self.conv_tr2 = ConvTranspBlock(128, 64, 3)"""
-        self.conv_tr1 = ConvTranspBlock(64, 32, 3)
-        self.conv_tr2 = ConvTranspBlock(32, 1, 3)#TOCHECK The out_channels is at 1 because we have to produce an image; at this stage 
+        self.conv_tr1 = ConvTranspBlockRes(28, 24, 3)
+        self.conv_tr2 = ConvTranspBlockRes(24, 20, 3)
+        self.conv_tr3 = ConvTranspBlockRes(20, 16, 3)
+        self.conv_tr4 = ConvTranspBlockRes(16, 12, 3)#TOCHECK The out_channels is at 1 because we have to produce an image; at this stage 
                                             # it can be the last frame or the next one
+        self.conv_tr5 = ConvTranspBlockRes(12, 8, 3)
+        self.conv_tr6 = ConvTranspBlockRes(8, 1, 3)                                        
         self.upsample = nn.Upsample(scale_factor=2, mode="nearest")
         
     def forward(self, x):
@@ -55,10 +57,15 @@ class Decoder(nn.Module):
         x = self.conv_tr1(x)
         x = self.conv_tr2(x)
 
-        #x = self.upsample(x)
+        x = self.upsample(x)
 
-        """x = self.conv_tr3(x)
-        x = self.conv_tr4(x)"""
+        x = self.conv_tr3(x)
+        x = self.conv_tr4(x)
+
+        x = self.upsample(x)
+
+        x = self.conv_tr5(x)
+        x = self.conv_tr6(x)
         return x
 
 #Autoencoder
@@ -74,9 +81,17 @@ class Autoencoder_conv(nn.Module):
         self.conv1d_tr = nn.ConvTranspose2d(1, 256, 1)
         self.conv2d_tr1 = nn.ConvTranspose2d(256, 256, kernel_size = [4, 4], stride = [2, 2], padding = [3, 1])
         self.conv2d_tr2 = nn.ConvTranspose2d(256, 256, kernel_size = [2, 4], stride = [2, 2], padding = [7, 1])"""
+        #TODO add Flatten and Unflatten
+        self.flatten = nn.Flatten()
+        self.linear1 = nn.Linear(145152, 4096)
+        self.linear2 = nn.Linear(4096, 1024)
 
-        #self.actv = nn.Tanh()
-        self.actv = nn.ReLU()
+        self.linear3 = nn.Linear(1024, 4096)
+        self.linear4 = nn.Linear(4096, 145152)
+        self.unflatten = nn.Unflatten()#[28*54*96]
+
+        self.actv = nn.Tanh()
+        #self.actv = nn.ReLU()
 
     def encode(self, input_sequence):
         return self.enc(input_sequence)

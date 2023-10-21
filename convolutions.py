@@ -11,8 +11,9 @@ class ConvBlock(nn.Module):
         super().__init__()
         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size, padding=1, stride=stride)
         self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size, padding=1, stride=stride)
-        self.actv = nn.ReLU()
-        #self.actv = nn.Tanh()
+        #self.actv = nn.ReLU()
+        self.actv = nn.Tanh()
+        #self.actv = nn.Sigmoid()
     
     def forward(self, x):
         x = self.conv1(x)
@@ -27,8 +28,9 @@ class ConvTranspBlock(nn.Module):
         super().__init__()
         self.conv_tr1 = nn.ConvTranspose2d(in_channels, out_channels, kernel_size, padding=1, stride=stride)
         self.conv_tr2 = nn.ConvTranspose2d(out_channels, out_channels, kernel_size, padding=1, stride=stride)
-        #self.actv = nn.Tanh()
-        self.actv = nn.ReLU()
+        self.actv = nn.Tanh()
+        #self.actv = nn.ReLU()
+        #self.actv = nn.Sigmoid()
     
     def forward(self, x):
         x = self.actv(x)
@@ -37,6 +39,44 @@ class ConvTranspBlock(nn.Module):
         x = self.conv_tr2(x)
 
         return x
+    
+class ConvBlockRes(nn.Module):
+    def __init__(self, in_channels, out_channels, kernel_size, stride=1):
+        super().__init__()
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size, padding=1, stride=stride)
+        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size, padding=1, stride=stride)
+        #self.actv = nn.ReLU()
+        self.actv = nn.Tanh()
+        #self.actv = nn.Sigmoid()
+        self.ident = nn.Conv2d(in_channels, out_channels, 1, stride=stride)
+    
+    def forward(self, x):
+        res = self.ident(x)
+        x = self.conv1(x)
+        x = self.actv(x)
+        x = self.conv2(x)
+        x = self.actv(x)
+
+        return x + res
+    
+class ConvTranspBlockRes(nn.Module):
+    def __init__(self, in_channels, out_channels, kernel_size, stride=1):
+        super().__init__()
+        self.conv_tr1 = nn.ConvTranspose2d(in_channels, out_channels, kernel_size, padding=1, stride=stride)
+        self.conv_tr2 = nn.ConvTranspose2d(out_channels, out_channels, kernel_size, padding=1, stride=stride)
+        self.actv = nn.Tanh()
+        #self.actv = nn.ReLU()
+        #self.actv = nn.Sigmoid()
+        self.ident = nn.ConvTranspose2d(in_channels, out_channels, 1, stride=stride)
+    
+    def forward(self, x):
+        res = self.ident(x)
+        x = self.actv(x)
+        x = self.conv_tr1(x)
+        x = self.actv(x)
+        x = self.conv_tr2(x)
+
+        return x + res
     
 class TemporalExpansion(nn.Module):
     def __init__(self, sequence_length):

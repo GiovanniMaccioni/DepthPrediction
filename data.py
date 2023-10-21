@@ -47,6 +47,8 @@ def apply_depth_normalization_16bit_image(img, norm_type):
         raise NotImplementedError
     elif norm_type == "dataset_mean_std":
         raise NotImplementedError
+    elif norm_type == None:
+        tmp = img
     else:
         raise NotImplementedError
     return tmp

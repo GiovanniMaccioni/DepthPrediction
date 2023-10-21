@@ -5,13 +5,13 @@ import train as T
 import utils as U
 
 config ={
-    'batch_size': 4,
+    'batch_size': 64,
     'seed': 10,
     'lr': 3e-3,
     'sequence_length':1,
     'img_size': None, #(512, 424),
-    'img_norm': "min_max",#mean_std
-    'epochs': 10
+    'img_norm': "mean_std",#"mean_std" "min_max"
+    'epochs': 300
 }
 
 U.set_reproducibility(config['seed'])
@@ -19,22 +19,23 @@ U.set_reproducibility(config['seed'])
 #Hyperparameters
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
-trainset =  D.BaxterJointsSynthDataset("./data/dataset", [0], "train", demo = False, img_size=config["img_size"], sequence_length=1)
+trainset =  D.BaxterJointsSynthDataset("./data/dataset", [0], "train", demo = False, img_size=config["img_size"], sequence_length=1, norm_type=config["img_norm"])
 trainset.train()
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=config["batch_size"],
-                                        shuffle=True, num_workers=16,
+                                        shuffle=True, num_workers=32,
                                         worker_init_fn=D.init_worker, drop_last=True)
 
 
-valset =  D.BaxterJointsSynthDataset("./data/dataset", [0], "train", demo = False, img_size=config["img_size"], sequence_length=1)
+valset =  D.BaxterJointsSynthDataset("./data/dataset", [0], "train", demo = False, img_size=config["img_size"], sequence_length=1, norm_type=config["img_norm"])
 valset.eval()
-valloader =  torch.utils.data.DataLoader(valset, batch_size=config["batch_size"],
-                                    shuffle=False, num_workers=16,
+valloader =  torch.utils.data.DataLoader(valset, batch_size=60,
+                                    shuffle=False, num_workers=32,
                                     worker_init_fn=D.init_worker, drop_last=True)
 
 
+
 #TOCHECK I don't know if I have to do the XYZ transformation as said in the paper
-with T.wandb.init(project="experiment1-reconstruction", name="conv2d", config = config):#, mode="disabled"
+with T.wandb.init(project=f"experiment8-reconstruction", name=f"conv2d-mean_std-seed{config['seed']}", config = config, mode="disabled"):#, mode="disabled"
 
     encoder = M.Encoder()
     decoder = M.Decoder()
