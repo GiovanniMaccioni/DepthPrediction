@@ -35,7 +35,7 @@ valloader =  torch.utils.data.DataLoader(valset, batch_size=config["batch_size"]
 
 
 #TOCHECK I don't know if I have to do the XYZ transformation as said in the paper
-with T.wandb.init(project=f"experiment10-reconstruction", name=f"conv2d-mean_std-seed{config['seed']}", config = config):#, mode="disabled"
+with T.wandb.init(project=f"experiment12-reconstruction", name=f"conv2d-mean_std-seed{config['seed']}", config = config):#, mode="disabled"
 
     encoder = M.Encoder()
     decoder = M.Decoder()
