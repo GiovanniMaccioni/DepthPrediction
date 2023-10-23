@@ -79,7 +79,7 @@ class ConvTranspBlockRes(nn.Module):
 
         return x + res
     
-class ConvBlockResNet(nn.Module):
+class ConvBlockResNetFirst(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, stride=1):
         super().__init__()
         self.conv1 = nn.Conv2d(in_channels, in_channels, kernel_size, padding=1, stride=stride)
@@ -90,7 +90,7 @@ class ConvBlockResNet(nn.Module):
         self.actv = nn.Tanh()
         #self.actv = nn.Sigmoid()
         self.ident = nn.Identity()
-        self.proj = nn.ConvTranspose2d(in_channels, out_channels, 1, stride=stride)
+        self.proj = nn.Conv2d(in_channels, out_channels, 1, stride=2)
     
     def forward(self, x):
         res = self.ident(x)
@@ -105,6 +105,56 @@ class ConvBlockResNet(nn.Module):
         x = self.actv(x)
         proj = self.proj(x)
         return x, proj
+
+class ConvBlockResNet(nn.Module):
+    def __init__(self, in_channels, out_channels, kernel_size, stride=1):
+        super().__init__()
+        self.conv1 = nn.Conv2d(in_channels, in_channels, kernel_size, padding=1, stride=stride)
+        self.conv2 = nn.Conv2d(in_channels, in_channels, kernel_size, padding=1, stride=stride)
+        self.conv3 = nn.Conv2d(in_channels, in_channels, kernel_size, padding=1, stride=stride)
+        self.conv4 = nn.Conv2d(in_channels, in_channels, kernel_size, padding=1, stride=stride)
+        #self.actv = nn.ReLU()
+        self.actv = nn.Tanh()
+        #self.actv = nn.Sigmoid()
+        self.ident = nn.Identity()
+        self.proj = nn.Conv2d(in_channels, out_channels, 1, stride=2)
+    
+    def forward(self, x, res):
+        x = self.conv1(x)
+        x = self.actv(x)
+        x = self.conv2(x) + res
+        x = self.actv(x)
+        res = self.ident(x)
+        x = self.conv3(x)
+        x = self.actv(x)
+        x = self.conv4(x) + res
+        x = self.actv(x)
+        proj = self.proj(x)
+        return x, proj
+    
+class ConvBlockResNetLast(nn.Module):
+    def __init__(self, in_channels, kernel_size, stride=1):
+        super().__init__()
+        self.conv1 = nn.Conv2d(in_channels, in_channels, kernel_size, padding=1, stride=stride)
+        self.conv2 = nn.Conv2d(in_channels, in_channels, kernel_size, padding=1, stride=stride)
+        self.conv3 = nn.Conv2d(in_channels, in_channels, kernel_size, padding=1, stride=stride)
+        self.conv4 = nn.Conv2d(in_channels, in_channels, kernel_size, padding=1, stride=stride)
+        #self.actv = nn.ReLU()
+        self.actv = nn.Tanh()
+        #self.actv = nn.Sigmoid()
+        self.ident = nn.Identity()
+    
+    def forward(self, x, res):
+        x = self.conv1(x)
+        x = self.actv(x)
+        x = self.conv2(x) + res
+        x = self.actv(x)
+        res = self.ident(x)
+        x = self.conv3(x)
+        x = self.actv(x)
+        x = self.conv4(x) + res
+        x = self.actv(x)
+        return x
     
 class ConvTranspBlockResNet(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, stride=1):

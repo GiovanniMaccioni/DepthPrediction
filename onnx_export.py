@@ -12,7 +12,7 @@ model = M.Autoencoder_conv(encoder, decoder)
 x = torch.randn(1, 1, 432, 768, requires_grad=True)
 torch_out = model(x)
 
-exp = "exp10"
+exp = "exp11"
 
 # Export the model
 torch.onnx.export(model,               # model being run

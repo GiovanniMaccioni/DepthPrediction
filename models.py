@@ -14,26 +14,17 @@ class Encoder(nn.Module):
     def __init__(self):
         super().__init__()
         #For the first convolution, we have input channels = 1. 32 and 3 are chosen arbitrarly for now
-        self.pre_conv1 = nn.Conv2d(1*1, 8, 7, padding=1, stride=2)
-        self.conv1 = ConvBlockResNet(8, 12, 3)#The input channels depend on the sequence length chosen
+        self.pre_conv1 = nn.Conv2d(1*1, 4, 7, padding=1, stride=2)
+        self.conv1 = ConvBlockResNetFirst(4, 8, 3)#The input channels depend on the sequence length chosen
 
-        self.pre_conv2 = nn.Conv2d(8, 12, 7, padding=1, stride=2)
-        self.conv2 = ConvBlockResNet(12, 12, 3)
+        self.pre_conv2 = nn.Conv2d(4, 8, 3, padding=1, stride=2)
+        self.conv2 = ConvBlockResNet(8, 16, 3)
 
-        self.pre_conv3 = nn.Conv2d(8, 12, 7, padding=1, stride=2)
-        self.conv3 = ConvBlockResNet(12, 16, 3)
+        self.pre_conv3 = nn.Conv2d(8, 16, 3, padding=1, stride=2)
+        self.conv3 = ConvBlockResNet(16, 32, 3)
 
-        self.pre_conv4 = nn.Conv2d(8, 12, 7, padding=1, stride=2)
-        self.conv4 = ConvBlockResNet(12, 16, 3)
-
-        self.pre_conv5 = nn.Conv2d(8, 12, 7, padding=1, stride=2)
-        self.conv5 = ConvBlockResNet(12, 16, 3)
-
-        self.pre_conv5 = nn.Conv2d(8, 12, 7, padding=1, stride=2)
-        self.conv5 = ConvBlockResNet(12, 16, 3)
-
-        self.pre_conv6 = nn.Conv2d(8, 12, 7, padding=1, stride=2)
-        self.conv6 = ConvBlockResNet(12, 16, 3)
+        self.pre_conv4 = nn.Conv2d(16, 32, 3, padding=1, stride=2)
+        self.conv4 = ConvBlockResNetLast(32, 3)
 
         self.pool = nn.MaxPool2d(3, stride=2, padding=1)
 
@@ -47,23 +38,15 @@ class Encoder(nn.Module):
 
         x = self.pre_conv2(x)
         x = self.actv(x)
-        x, proj = self.conv2(x)
+        x, proj = self.conv2(x, proj)
 
         x = self.pre_conv3(x)
         x = self.actv(x)
-        x, proj = self.conv3(x)
+        x, proj = self.conv3(x, proj)
 
         x = self.pre_conv4(x)
         x = self.actv(x)
-        x, proj = self.conv4(x)
-
-        x = self.pre_conv5(x)
-        x = self.actv(x)
-        x, proj = self.conv5(x)
-
-        x = self.pre_conv6(x)
-        x = self.actv(x)
-        x, proj = self.conv6(x)
+        x = self.conv4(x, proj)
 
         return x
         
@@ -119,13 +102,13 @@ class Autoencoder_conv(nn.Module):
         self.conv2d_tr2 = nn.ConvTranspose2d(256, 256, kernel_size = [2, 4], stride = [2, 2], padding = [7, 1])"""
         #TODO add Flatten and Unflatten
         self.flatten = nn.Flatten()
-        self.linear1 = nn.Linear(46656, 4096)
+        self.linear1 = nn.Linear(10752, 4096)
         self.linear2 = nn.Linear(4096, 2048)
         self.linear3 = nn.Linear(2048, 1024)
 
         self.linear4 = nn.Linear(1024, 2048)
         self.linear5 = nn.Linear(2048, 4096)
-        self.linear6 = nn.Linear(4096, 46656)
+        self.linear6 = nn.Linear(4096, 10752)
 
         self.actv = nn.ReLU()
 
@@ -151,7 +134,7 @@ class Autoencoder_conv(nn.Module):
         x = self.actv(x)
         x = self.linear6(x)
         #x = self.unflatten(x)
-        x = x.reshape((x.shape[0],36,27,48))
+        x = x.reshape((x.shape[0],32,14,24))
 
         """###
         x = self.conv2d1(x)

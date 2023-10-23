@@ -41,7 +41,7 @@ with T.wandb.init(project=f"experiment10-reconstruction", name=f"conv2d-mean_std
     decoder = M.Decoder()
     model = M.Autoencoder_conv(encoder, decoder).to(device)
 
-    #I will test pdepth estimation first. To change the test for now, change the function call in the train function in train.py
+    #I will test depth estimation first. To change the test for now, change the function call in the train function in train.py
 
     criterion = torch.nn.L1Loss()
     optimizer = torch.optim.Adam(model.parameters(), config['lr'])
