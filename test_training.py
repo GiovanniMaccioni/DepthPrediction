@@ -5,13 +5,13 @@ import train as T
 import utils as U
 
 config ={
-    'batch_size': 64,
+    'batch_size': 16,
     'seed': 10,
     'lr': 3e-3,
     'sequence_length':1,
     'img_size': None, #(512, 424),
     'img_norm': "mean_std",#"mean_std" "min_max"
-    'epochs': 300
+    'epochs': 30
 }
 
 U.set_reproducibility(config['seed'])
@@ -28,14 +28,14 @@ trainloader = torch.utils.data.DataLoader(trainset, batch_size=config["batch_siz
 
 valset =  D.BaxterJointsSynthDataset("./data/dataset", [0], "train", demo = False, img_size=config["img_size"], sequence_length=1, norm_type=config["img_norm"])
 valset.eval()
-valloader =  torch.utils.data.DataLoader(valset, batch_size=60,
+valloader =  torch.utils.data.DataLoader(valset, batch_size=config["batch_size"],
                                     shuffle=False, num_workers=32,
                                     worker_init_fn=D.init_worker, drop_last=True)
 
 
 
 #TOCHECK I don't know if I have to do the XYZ transformation as said in the paper
-with T.wandb.init(project=f"experiment8-reconstruction", name=f"conv2d-mean_std-seed{config['seed']}", config = config, mode="disabled"):#, mode="disabled"
+with T.wandb.init(project=f"experiment10-reconstruction", name=f"conv2d-mean_std-seed{config['seed']}", config = config):#, mode="disabled"
 
     encoder = M.Encoder()
     decoder = M.Decoder()

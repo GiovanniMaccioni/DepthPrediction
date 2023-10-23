@@ -14,41 +14,72 @@ class Encoder(nn.Module):
     def __init__(self):
         super().__init__()
         #For the first convolution, we have input channels = 1. 32 and 3 are chosen arbitrarly for now
-        self.conv1 = ConvBlockRes(1*1, 8, 3)#The input channels depend on the sequence length chosen
-        self.conv2 = ConvBlockRes(8, 12, 3)
-        self.conv3 = ConvBlockRes(12, 16, 3)
-        self.conv4 = ConvBlockRes(16, 20, 3)
-        self.conv5 = ConvBlockRes(20, 24, 3)
-        self.conv6 = ConvBlockRes(24, 28, 3)
+        self.pre_conv1 = nn.Conv2d(1*1, 8, 7, padding=1, stride=2)
+        self.conv1 = ConvBlockResNet(8, 12, 3)#The input channels depend on the sequence length chosen
+
+        self.pre_conv2 = nn.Conv2d(8, 12, 7, padding=1, stride=2)
+        self.conv2 = ConvBlockResNet(12, 12, 3)
+
+        self.pre_conv3 = nn.Conv2d(8, 12, 7, padding=1, stride=2)
+        self.conv3 = ConvBlockResNet(12, 16, 3)
+
+        self.pre_conv4 = nn.Conv2d(8, 12, 7, padding=1, stride=2)
+        self.conv4 = ConvBlockResNet(12, 16, 3)
+
+        self.pre_conv5 = nn.Conv2d(8, 12, 7, padding=1, stride=2)
+        self.conv5 = ConvBlockResNet(12, 16, 3)
+
+        self.pre_conv5 = nn.Conv2d(8, 12, 7, padding=1, stride=2)
+        self.conv5 = ConvBlockResNet(12, 16, 3)
+
+        self.pre_conv6 = nn.Conv2d(8, 12, 7, padding=1, stride=2)
+        self.conv6 = ConvBlockResNet(12, 16, 3)
+
         self.pool = nn.MaxPool2d(3, stride=2, padding=1)
+
+        self.actv = nn.Tanh()
     
     def forward(self, x):
-        x = self.conv1(x)
-        x = self.conv2(x)
+        x = self.pre_conv1(x)
+        x = self.actv(x)
         x = self.pool(x)
-        x = self.conv3(x)
-        x = self.conv4(x)
-        x = self.pool(x)
-        x = self.conv5(x)
-        x = self.conv6(x)
-        x = self.pool(x)
-        """x = self.tcn5(x)
-        x = self.tcn6(x)"""
+        x, proj = self.conv1(x)
 
-        #x = self.pool(x)
+        x = self.pre_conv2(x)
+        x = self.actv(x)
+        x, proj = self.conv2(x)
+
+        x = self.pre_conv3(x)
+        x = self.actv(x)
+        x, proj = self.conv3(x)
+
+        x = self.pre_conv4(x)
+        x = self.actv(x)
+        x, proj = self.conv4(x)
+
+        x = self.pre_conv5(x)
+        x = self.actv(x)
+        x, proj = self.conv5(x)
+
+        x = self.pre_conv6(x)
+        x = self.actv(x)
+        x, proj = self.conv6(x)
+
         return x
         
 #Decoder
 class Decoder(nn.Module):
     def __init__(self):
         super().__init__()
-        self.conv_tr1 = ConvTranspBlockRes(28, 24, 3)
-        self.conv_tr2 = ConvTranspBlockRes(24, 20, 3)
-        self.conv_tr3 = ConvTranspBlockRes(20, 16, 3)
-        self.conv_tr4 = ConvTranspBlockRes(16, 12, 3)#TOCHECK The out_channels is at 1 because we have to produce an image; at this stage 
+        self.conv_tr1 = ConvTranspBlockRes(36, 32, 3)
+        self.conv_tr2 = ConvTranspBlockRes(32, 28, 3)
+        self.conv_tr3 = ConvTranspBlockRes(28, 24, 3)
+        self.conv_tr4 = ConvTranspBlockRes(24, 20, 3)#TOCHECK The out_channels is at 1 because we have to produce an image; at this stage 
                                             # it can be the last frame or the next one
-        self.conv_tr5 = ConvTranspBlockRes(12, 8, 3)
-        self.conv_tr6 = ConvTranspBlockRes(8, 1, 3)                                        
+        self.conv_tr5 = ConvTranspBlockRes(20, 16, 3)
+        self.conv_tr6 = ConvTranspBlockRes(16, 12, 3)
+        self.conv_tr7 = ConvTranspBlockRes(12, 8, 3)
+        self.conv_tr8 = ConvTranspBlockRes(8, 1, 3)                                        
         self.upsample = nn.Upsample(scale_factor=2, mode="nearest")
         
     def forward(self, x):
@@ -66,6 +97,11 @@ class Decoder(nn.Module):
 
         x = self.conv_tr5(x)
         x = self.conv_tr6(x)
+
+        x = self.upsample(x)
+
+        x = self.conv_tr7(x)
+        x = self.conv_tr8(x)
         return x
 
 #Autoencoder
@@ -83,15 +119,15 @@ class Autoencoder_conv(nn.Module):
         self.conv2d_tr2 = nn.ConvTranspose2d(256, 256, kernel_size = [2, 4], stride = [2, 2], padding = [7, 1])"""
         #TODO add Flatten and Unflatten
         self.flatten = nn.Flatten()
-        self.linear1 = nn.Linear(145152, 4096)
-        self.linear2 = nn.Linear(4096, 1024)
+        self.linear1 = nn.Linear(46656, 4096)
+        self.linear2 = nn.Linear(4096, 2048)
+        self.linear3 = nn.Linear(2048, 1024)
 
-        self.linear3 = nn.Linear(1024, 4096)
-        self.linear4 = nn.Linear(4096, 145152)
-        self.unflatten = nn.Unflatten()#[28*54*96]
+        self.linear4 = nn.Linear(1024, 2048)
+        self.linear5 = nn.Linear(2048, 4096)
+        self.linear6 = nn.Linear(4096, 46656)
 
-        self.actv = nn.Tanh()
-        #self.actv = nn.ReLU()
+        self.actv = nn.ReLU()
 
     def encode(self, input_sequence):
         return self.enc(input_sequence)
@@ -101,6 +137,22 @@ class Autoencoder_conv(nn.Module):
     
     def forward(self, input_sequence):
         x = self.encode(input_sequence)
+
+        x = self.flatten(x)
+        x = self.linear1(x)
+        x = self.actv(x)
+        x = self.linear2(x)
+        x = self.actv(x)
+        latent_vector = self.linear3(x)
+
+        x = self.linear4(latent_vector) 
+        x = self.actv(x)
+        x = self.linear5(x)
+        x = self.actv(x)
+        x = self.linear6(x)
+        #x = self.unflatten(x)
+        x = x.reshape((x.shape[0],36,27,48))
+
         """###
         x = self.conv2d1(x)
         x = self.actv(x)
@@ -120,7 +172,7 @@ class Autoencoder_conv(nn.Module):
         out = self.decode(x)
         #Added the ReLU activation to have only positive values in the output
         #as we are dealing with the depth values
-        return out, None#latent_vector
+        return out, latent_vector
  
     
     
