@@ -1,4 +1,4 @@
 __pycache__/
 data/
-onnx_models/
 wandb/
+onnx_models/*.onnx
