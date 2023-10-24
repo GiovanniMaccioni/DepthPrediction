@@ -85,8 +85,6 @@ class Decoder(nn.Module):
                                             # it can be the last frame or the next one
         self.post_conv4 = nn.ConvTranspose2d(4, 1, (8,8), padding=1, stride=2)
         
-
-
         self.upsample = nn.Upsample(scale_factor=2, mode="nearest")
 
         self.actv = nn.Tanh()
@@ -94,20 +92,20 @@ class Decoder(nn.Module):
     def forward(self, x):
 
         x, proj = self.conv_tr1(x)
-        x = self.actv(x)
+        #x = self.actv(x)
         x = self.post_conv1(x)
 
         x, proj = self.conv_tr2(x, proj)
-        x = self.actv(x)
+        #x = self.actv(x)
         x = self.post_conv2(x)
 
         x, proj = self.conv_tr3(x, proj)
-        x = self.actv(x)
+        #x = self.actv(x)
         x = self.post_conv3(x)
         
         x = self.conv_tr4(x, proj)
-        x = self.actv(x)
-        x = self.upsample(x)
+        #x = self.actv(x)
+        x = self.upsample(x)#TODO Try with convolution
         x = self.post_conv4(x)
 
         return x
@@ -127,15 +125,17 @@ class Autoencoder_conv(nn.Module):
         self.conv2d_tr2 = nn.ConvTranspose2d(256, 256, kernel_size = [2, 4], stride = [2, 2], padding = [7, 1])"""
         #TODO add Flatten and Unflatten
         self.flatten = nn.Flatten()
-        self.linear1 = nn.Linear(10752, 4096)
-        self.linear2 = nn.Linear(4096, 2048)
+        self.linear1 = nn.Linear(10752, 512)
+        self.linear2 = nn.Linear(512, 10752)
+        """ self.linear2 = nn.Linear(4096, 2048)
         self.linear3 = nn.Linear(2048, 256)
 
         self.linear4 = nn.Linear(256, 2048)
         self.linear5 = nn.Linear(2048, 4096)
-        self.linear6 = nn.Linear(4096, 10752)
+        self.linear6 = nn.Linear(4096, 10752)"""
 
         self.actv = nn.ReLU()
+        self.dropout = nn.Dropout1d(0.5)
 
     def encode(self, input_sequence):
         return self.enc(input_sequence)
@@ -146,20 +146,25 @@ class Autoencoder_conv(nn.Module):
     def forward(self, input_sequence):
         x = self.encode(input_sequence)
 
-        x = self.flatten(x)
+        """x = self.flatten(x)
         x = self.linear1(x)
         x = self.actv(x)
+
+        x = self.dropout(x)
+
         x = self.linear2(x)
+        x = x.reshape((x.shape[0],32,14,24))"""
+        """x = self.linear2(x)
         x = self.actv(x)
         latent_vector = self.linear3(x)
-
-        x = self.linear4(latent_vector) 
+        x = self.actv(latent_vector)
+        x = self.linear4(x) 
         x = self.actv(x)
         x = self.linear5(x)
         x = self.actv(x)
         x = self.linear6(x)
         #x = self.unflatten(x)
-        x = x.reshape((x.shape[0],32,14,24))
+        x = x.reshape((x.shape[0],32,14,24))"""
 
         """###
         x = self.conv2d1(x)
@@ -177,10 +182,11 @@ class Autoencoder_conv(nn.Module):
         x = self.actv(x)
         x = self.conv2d_tr2(x)
         ###"""
+        
         out = self.decode(x)
         #Added the ReLU activation to have only positive values in the output
         #as we are dealing with the depth values
-        return out, latent_vector
+        return out, x#None#latent_vector
  
     
     

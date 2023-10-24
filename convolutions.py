@@ -97,9 +97,9 @@ class ConvBlockResNetFirst(nn.Module):
         x = self.conv1(x)
         x = self.actv(x)
         x = self.conv2(x) + res
-        x = self.actv(x)
+        #x = self.actv(x)
         res = self.ident(x)
-        x = self.conv3(x)
+        x = self.conv3(self.actv(x))
         x = self.actv(x)
         x = self.conv4(x) + res
         x = self.actv(x)
@@ -123,9 +123,9 @@ class ConvBlockResNet(nn.Module):
         x = self.conv1(x)
         x = self.actv(x)
         x = self.conv2(x) + res
-        x = self.actv(x)
+        #x = self.actv(x)
         res = self.ident(x)
-        x = self.conv3(x)
+        x = self.conv3(self.actv(x))
         x = self.actv(x)
         x = self.conv4(x) + res
         x = self.actv(x)
@@ -148,12 +148,12 @@ class ConvBlockResNetLast(nn.Module):
         x = self.conv1(x)
         x = self.actv(x)
         x = self.conv2(x) + res
-        x = self.actv(x)
+        #x = self.actv(x)
         res = self.ident(x)
-        x = self.conv3(x)
+        x = self.conv3(self.actv(x))
         x = self.actv(x)
-        x = self.conv4(x) + res
-        x = self.actv(x)
+        x = self.actv(self.conv4(x) + res)#FIXME
+        #x = self.actv(x)
         return x
     
 class ConvTranspBlockResNetFirst(nn.Module):
@@ -179,7 +179,7 @@ class ConvTranspBlockResNetFirst(nn.Module):
         x = self.actv(x)
         x = self.conv_tr3(x)
         x = self.actv(x)
-        x = self.conv_tr4(x) + res
+        x = self.actv(self.conv_tr4(x) + res)
         proj = self.proj(x)
 
         return x, proj
@@ -206,7 +206,7 @@ class ConvTranspBlockResNet(nn.Module):
         x = self.actv(x)
         x = self.conv_tr3(x)
         x = self.actv(x)
-        x = self.conv_tr4(x) + res
+        x = self.actv(self.conv_tr4(x) + res)
         proj = self.proj(x)
 
         return x, proj
@@ -222,7 +222,6 @@ class ConvTranspBlockResNetLast(nn.Module):
         #self.actv = nn.ReLU()
         #self.actv = nn.Sigmoid()
         self.ident = nn.Identity()
-        self.proj = nn.ConvTranspose2d(in_channels, out_channels, 1, stride=2)
     
     def forward(self, x, res):
         x = self.actv(x)
@@ -230,10 +229,10 @@ class ConvTranspBlockResNetLast(nn.Module):
         x = self.actv(x)
         x = self.conv_tr2(x) + res
         res = self.ident(x)
+        #x = self.actv(x)
+        x = self.conv_tr3(self.actv(x))
         x = self.actv(x)
-        x = self.conv_tr3(x)
-        x = self.actv(x)
-        x = self.conv_tr4(x) + res
+        x = self.actv(self.conv_tr4(x) + res)
 
         return x
     

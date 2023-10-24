@@ -48,10 +48,13 @@ def train_batch_depth_estimation(model, train_loader, criterion, optimizer, epoc
 
             max_ = out[0].detach().cpu().max().float()
             min_ = out[0].detach().cpu().min().float()
-            image = torchvision.transforms.functional.to_pil_image(images[0, 0, :], mode=None)
+            image = torchvision.transforms.functional.to_pil_image(out[0], mode=None)
             predicted = wandb.Image(image, caption=f"Predicted, range {min_:0.3f}, {max_:0.3f}")
+
+            image = torchvision.transforms.functional.to_pil_image(torch.mean(latent[0], dim=0), mode=None)
+            mean_f = wandb.Image(image, caption=f"Channel Mean Feature Map After encoder")
             
-            imgs = [gt, predicted]
+            imgs = [gt, predicted, mean_f]
 
             image_logging = {"Train": imgs}
 
@@ -115,7 +118,10 @@ def evaluate_batch(model, loader, criterion, device):
                 image_out = torchvision.transforms.functional.to_pil_image(out[0], mode=None)
                 predicted = wandb.Image(image_out, caption=f"Predicted, range {min_:0.3f}, {max_:0.3f}")
 
-                imgs = [gt, predicted]
+                image = torchvision.transforms.functional.to_pil_image(torch.mean(latent[0], dim=0), mode=None)
+                mean_f = wandb.Image(image, caption=f"Channel Mean Feature Map After encoder")
+                
+                imgs = [gt, predicted, mean_f]
 
                 image_logging = {"Validation": imgs}
 
