@@ -8,9 +8,11 @@ import wandb
 import torchvision
 
 def train(model, train_loader, validation_loader, criterion, optimizer, device, epochs):#FIXME removed config
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=100, gamma=0.1)
     for epoch in range(epochs):
         loss_epoch, image_logging_t = train_batch_depth_estimation(model, train_loader, criterion, optimizer, epoch, device)
         val_loss, image_logging_v = evaluate_batch(model, validation_loader, criterion, device)
+        scheduler.step()
 
         wandb.log({"Train Loss": loss_epoch, "Validation Loss": val_loss}|image_logging_t|image_logging_v)
 
@@ -51,10 +53,10 @@ def train_batch_depth_estimation(model, train_loader, criterion, optimizer, epoc
             image = torchvision.transforms.functional.to_pil_image(out[0], mode=None)
             predicted = wandb.Image(image, caption=f"Predicted, range {min_:0.3f}, {max_:0.3f}")
 
-            image = torchvision.transforms.functional.to_pil_image(torch.mean(latent[0], dim=0), mode=None)
-            mean_f = wandb.Image(image, caption=f"Channel Mean Feature Map After encoder")
+            #image = torchvision.transforms.functional.to_pil_image(torch.mean(latent[0], dim=0), mode=None)
+            #mean_f = wandb.Image(image, caption=f"Channel Mean Feature Map After encoder")
             
-            imgs = [gt, predicted, mean_f]
+            imgs = [gt, predicted]#, mean_f]
 
             image_logging = {"Train": imgs}
 
@@ -118,10 +120,10 @@ def evaluate_batch(model, loader, criterion, device):
                 image_out = torchvision.transforms.functional.to_pil_image(out[0], mode=None)
                 predicted = wandb.Image(image_out, caption=f"Predicted, range {min_:0.3f}, {max_:0.3f}")
 
-                image = torchvision.transforms.functional.to_pil_image(torch.mean(latent[0], dim=0), mode=None)
-                mean_f = wandb.Image(image, caption=f"Channel Mean Feature Map After encoder")
+                #image = torchvision.transforms.functional.to_pil_image(torch.mean(latent[0], dim=0), mode=None)
+                #mean_f = wandb.Image(image, caption=f"Channel Mean Feature Map After encoder")
                 
-                imgs = [gt, predicted, mean_f]
+                imgs = [gt, predicted]#, mean_f]
 
                 image_logging = {"Validation": imgs}
 

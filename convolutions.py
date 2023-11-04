@@ -80,15 +80,16 @@ class ConvTranspBlockRes(nn.Module):
         return x + res
     
 class ConvBlockResNetFirst(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size, stride=1):
+    def __init__(self, in_channels, out_channels, kernel_size, stride=1, ):
         super().__init__()
         self.conv1 = nn.Conv2d(in_channels, in_channels, kernel_size, padding=1, stride=stride)
         self.conv2 = nn.Conv2d(in_channels, in_channels, kernel_size, padding=1, stride=stride)
         self.conv3 = nn.Conv2d(in_channels, in_channels, kernel_size, padding=1, stride=stride)
         self.conv4 = nn.Conv2d(in_channels, in_channels, kernel_size, padding=1, stride=stride)
         #self.actv = nn.ReLU()
-        self.actv = nn.Tanh()
+        #self.actv = nn.Tanh()
         #self.actv = nn.Sigmoid()
+        self.actv = nn.LeakyReLU(0.1)
         self.ident = nn.Identity()
         self.proj = nn.Conv2d(in_channels, out_channels, 1, stride=2)
     
@@ -114,7 +115,8 @@ class ConvBlockResNet(nn.Module):
         self.conv3 = nn.Conv2d(in_channels, in_channels, kernel_size, padding=1, stride=stride)
         self.conv4 = nn.Conv2d(in_channels, in_channels, kernel_size, padding=1, stride=stride)
         #self.actv = nn.ReLU()
-        self.actv = nn.Tanh()
+        #self.actv = nn.Tanh()
+        self.actv = nn.LeakyReLU(0.1)
         #self.actv = nn.Sigmoid()
         self.ident = nn.Identity()
         self.proj = nn.Conv2d(in_channels, out_channels, 1, stride=2)
@@ -140,8 +142,9 @@ class ConvBlockResNetLast(nn.Module):
         self.conv3 = nn.Conv2d(in_channels, in_channels, kernel_size, padding=1, stride=stride)
         self.conv4 = nn.Conv2d(in_channels, in_channels, kernel_size, padding=1, stride=stride)
         #self.actv = nn.ReLU()
-        self.actv = nn.Tanh()
+        #sself.actv = nn.Tanh()
         #self.actv = nn.Sigmoid()
+        self.actv = nn.LeakyReLU(0.1)
         self.ident = nn.Identity()
     
     def forward(self, x, res):
@@ -157,17 +160,18 @@ class ConvBlockResNetLast(nn.Module):
         return x
     
 class ConvTranspBlockResNetFirst(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size, stride=1):
+    def __init__(self, in_channels, out_channels, kernel_size, stride=1, output_padding=0):
         super().__init__()
         self.conv_tr1 = nn.ConvTranspose2d(in_channels, in_channels, kernel_size, padding=1, stride=stride)
         self.conv_tr2 = nn.ConvTranspose2d(in_channels, in_channels, kernel_size, padding=1, stride=stride)
         self.conv_tr3 = nn.ConvTranspose2d(in_channels, in_channels, kernel_size, padding=1, stride=stride)
         self.conv_tr4 = nn.ConvTranspose2d(in_channels, in_channels, kernel_size, padding=1, stride=stride)
-        self.actv = nn.Tanh()
+        #self.actv = nn.Tanh()
         #self.actv = nn.ReLU()
         #self.actv = nn.Sigmoid()
+        self.actv = nn.LeakyReLU(0.1)
         self.ident = nn.Identity()
-        self.proj = nn.ConvTranspose2d(in_channels, out_channels, 1, stride=2, output_padding=(0,1))
+        self.proj = nn.ConvTranspose2d(in_channels, out_channels, 1, stride=2, output_padding=output_padding)
     
     def forward(self, x):
         res = self.ident(x)
@@ -191,9 +195,10 @@ class ConvTranspBlockResNet(nn.Module):
         self.conv_tr2 = nn.ConvTranspose2d(in_channels, in_channels, kernel_size, padding=1, stride=stride)
         self.conv_tr3 = nn.ConvTranspose2d(in_channels, in_channels, kernel_size, padding=1, stride=stride)
         self.conv_tr4 = nn.ConvTranspose2d(in_channels, in_channels, kernel_size, padding=1, stride=stride)
-        self.actv = nn.Tanh()
+        #self.actv = nn.Tanh()
         #self.actv = nn.ReLU()
         #self.actv = nn.Sigmoid()
+        self.actv = nn.LeakyReLU(0.1)
         self.ident = nn.Identity()
         self.proj = nn.ConvTranspose2d(in_channels, out_channels, 1, stride=2, output_padding=output_padding)
     
@@ -218,9 +223,10 @@ class ConvTranspBlockResNetLast(nn.Module):
         self.conv_tr2 = nn.ConvTranspose2d(in_channels, in_channels, kernel_size, padding=1, stride=stride)
         self.conv_tr3 = nn.ConvTranspose2d(in_channels, in_channels, kernel_size, padding=1, stride=stride)
         self.conv_tr4 = nn.ConvTranspose2d(in_channels, in_channels, kernel_size, padding=1, stride=stride)
-        self.actv = nn.Tanh()
+        #self.actv = nn.Tanh()
         #self.actv = nn.ReLU()
         #self.actv = nn.Sigmoid()
+        self.actv = nn.LeakyReLU(0.1)
         self.ident = nn.Identity()
     
     def forward(self, x, res):

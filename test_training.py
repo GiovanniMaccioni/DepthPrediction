@@ -7,12 +7,18 @@ import utils as U
 config ={
     'batch_size': 16,
     'seed': 10,
-    'lr': 3e-3,
+    'lr': 3e-4,
     'sequence_length':1,
     'img_size': None, #(512, 424),
     'img_norm': "mean_std",#"mean_std" "min_max"
-    'epochs': 30
+    'epochs': 300
 }
+
+from piqa import SSIM
+
+class SSIMLoss(SSIM):
+    def forward(self, x, y):
+        return 1. - super().forward(x, y)
 
 U.set_reproducibility(config['seed'])
 
@@ -35,7 +41,7 @@ valloader =  torch.utils.data.DataLoader(valset, batch_size=config["batch_size"]
 
 
 #TOCHECK I don't know if I have to do the XYZ transformation as said in the paper
-with T.wandb.init(project=f"experiment15-reconstruction", name=f"conv2d-mean_std-seed{config['seed']}", config = config):#, mode="disabled"
+with T.wandb.init(project=f"experiment19-reconstruction", name=f"conv2d-mean_std-seed{config['seed']}-SSIM", config = config):#, mode="disabled"
 
     encoder = M.Encoder()
     decoder = M.Decoder()
@@ -43,7 +49,9 @@ with T.wandb.init(project=f"experiment15-reconstruction", name=f"conv2d-mean_std
 
     #I will test depth estimation first. To change the test for now, change the function call in the train function in train.py
 
-    criterion = torch.nn.L1Loss()
+    #criterion = torch.nn.L1Loss()
+    criterion = SSIMLoss(n_channels=1).cuda() #if you need GPU support
+    #criterion = torch.nn.HuberLoss(delta = 0.1)
     optimizer = torch.optim.Adam(model.parameters(), config['lr'])
 
     T.wandb.watch(model, criterion, log="all", log_freq=1)

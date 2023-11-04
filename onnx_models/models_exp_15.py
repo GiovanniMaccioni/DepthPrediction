@@ -24,13 +24,7 @@ class Encoder(nn.Module):
         self.conv3 = ConvBlockResNet(16, 32, 3)
 
         self.pre_conv4 = nn.Conv2d(16, 32, 3, padding=1, stride=2)
-        self.conv4 = ConvBlockResNet(32, 64, 3)
-
-        self.pre_conv5 = nn.Conv2d(32, 64, 3, padding=1, stride=2)
-        self.conv5 = ConvBlockResNet(64, 128, 3)
-
-        self.pre_conv6 = nn.Conv2d(64, 128, 3, padding=1, stride=2)
-        self.conv6 = ConvBlockResNetLast(128, 3)
+        self.conv4 = ConvBlockResNetLast(32, 3)
 
         self.pool = nn.MaxPool2d(3, stride=2, padding=1)
 
@@ -52,15 +46,7 @@ class Encoder(nn.Module):
 
         x = self.pre_conv4(x)
         x = self.actv(x)
-        x, proj = self.conv4(x, proj)
-
-        x = self.pre_conv5(x)
-        x = self.actv(x)
-        x, proj = self.conv5(x, proj)
-
-        x = self.pre_conv6(x)
-        x = self.actv(x)
-        x = self.conv6(x, proj)
+        x = self.conv4(x, proj)
 
         return x
         
@@ -85,25 +71,18 @@ class Decoder(nn.Module):
 
         self.actv = nn.Tanh()
         """
-        #The Resnet blocks (except for the last) will have a double output, the feature map and the projection
-        #the second argument is refered to the number of out_channels of the projection
-        self.conv_tr1 = ConvTranspBlockResNetFirst(128, 64, 3, output_padding=(0,1))
-        self.post_conv1 = nn.ConvTranspose2d(128, 64, 3, padding=1, stride=2, output_padding=(0,1))#kernel_size = (3,4)
 
-        self.conv_tr2 = ConvTranspBlockResNet(64, 32, 3, output_padding=(1,1))
-        self.post_conv2 = nn.ConvTranspose2d(64, 32, 3, padding=1, stride=2, output_padding=(1,1))#kernel_size = (3,4)
+        self.conv_tr1 = ConvTranspBlockResNetFirst(32, 16, 3)
+        self.post_conv1 = nn.ConvTranspose2d(32, 16, (3, 4), padding=1, stride=2)
 
-        self.conv_tr3 = ConvTranspBlockResNet(32, 16, 3, output_padding=(0,1))
-        self.post_conv3 = nn.ConvTranspose2d(32, 16, 3, padding=1, stride=2, output_padding=(0,1))
+        self.conv_tr2 = ConvTranspBlockResNet(16, 8, 3, output_padding=(1,1))
+        self.post_conv2 = nn.ConvTranspose2d(16, 8, (4,4), padding=1, stride=2)
 
-        self.conv_tr4 = ConvTranspBlockResNet(16, 8, 3, output_padding=(1,1))
-        self.post_conv4 = nn.ConvTranspose2d(16, 8, 3, padding=1, stride=2, output_padding=(1,1))
+        self.conv_tr3 = ConvTranspBlockResNet(8, 4, 3)
+        self.post_conv3 = nn.ConvTranspose2d(8, 4, 3, padding=1, stride=2)
 
-        self.conv_tr5 = ConvTranspBlockResNet(8, 4, 3)#TOCHECK The out_channels is at 1 because we have to produce an image; at this stage
-        self.post_conv5 = nn.ConvTranspose2d(8, 4, 3, padding=1, stride=2)
-
-        self.conv_tr6 = ConvTranspBlockResNetLast(4, 1, 3)#TOCHECK The out_channels is at 1 because we have to produce an image; at this stage
-        self.post_conv6 = nn.ConvTranspose2d(4, 1, 7, padding=1, stride=2, output_padding=(1,1))
+        self.conv_tr4 = ConvTranspBlockResNetLast(4, 1, 3)#TOCHECK The out_channels is at 1 because we have to produce an image; at this stage
+        self.post_conv4 = nn.ConvTranspose2d(4, 1, (8,8), padding=1, stride=2)
         
         self.upsample = nn.Upsample(scale_factor=2, mode="nearest")
 
@@ -122,19 +101,11 @@ class Decoder(nn.Module):
         x, proj = self.conv_tr3(x, proj)
         #x = self.actv(x)
         x = self.post_conv3(x)
-
-        x, proj = self.conv_tr4(x, proj)
-        #x = self.actv(x)
-        x = self.post_conv4(x)
-
-        x, proj = self.conv_tr5(x, proj)
-        #x = self.actv(x)
-        x = self.post_conv5(x)
         
-        x = self.conv_tr6(x, proj)
+        x = self.conv_tr4(x, proj)
         #x = self.actv(x)
         x = self.upsample(x)#TODO Try with convolution
-        x = self.post_conv6(x)
+        x = self.post_conv4(x)
 
         return x
 
@@ -145,16 +116,24 @@ class Autoencoder_conv(nn.Module):
         self.enc = encoder
         self.dec = decoder
 
+        """self.conv2d1 = nn.Conv2d(256, 256, kernel_size = [2, 3], stride = [2, 2], padding = [7, 1])
+        self.conv2d2 = nn.Conv2d(256, 256, kernel_size = [3, 3], stride = [2, 2], padding = [3, 1])
+        self.conv1d = nn.Conv2d(256, 1, 1)
+        self.conv1d_tr = nn.ConvTranspose2d(1, 256, 1)
+        self.conv2d_tr1 = nn.ConvTranspose2d(256, 256, kernel_size = [4, 4], stride = [2, 2], padding = [3, 1])
+        self.conv2d_tr2 = nn.ConvTranspose2d(256, 256, kernel_size = [2, 4], stride = [2, 2], padding = [7, 1])"""
         #TODO add Flatten and Unflatten
-        """self.flatten = nn.Flatten()
-        self.linear1 = nn.Linear(3072, 1024)
-        self.linear2 = nn.Linear(1024, 256)
+        self.flatten = nn.Flatten()
+        self.linear1 = nn.Linear(10752, 512)
+        self.linear2 = nn.Linear(512, 10752)
+        """ self.linear2 = nn.Linear(4096, 2048)
+        self.linear3 = nn.Linear(2048, 256)
 
-        self.linear3 = nn.Linear(256, 1024)
-        self.linear4 = nn.Linear(1024, 3072)"""
-        
-        #self.actv = nn.Tanh()
-        self.actv = nn.LeakyReLU(0.1)
+        self.linear4 = nn.Linear(256, 2048)
+        self.linear5 = nn.Linear(2048, 4096)
+        self.linear6 = nn.Linear(4096, 10752)"""
+
+        self.actv = nn.ReLU()
 
     def encode(self, input_sequence):
         return self.enc(input_sequence)
@@ -168,15 +147,41 @@ class Autoencoder_conv(nn.Module):
         """x = self.flatten(x)
         x = self.linear1(x)
         x = self.actv(x)
-        x = self.linear2(x)
-        x = self.actv(x)
 
-        x = self.linear3(x)
+        x = self.dropout(x)
+
+        x = self.linear2(x)
+        x = x.reshape((x.shape[0],32,14,24))"""
+        """x = self.linear2(x)
         x = self.actv(x)
-        x = self.linear4(x)
-        x = x.reshape((x.shape[0],128,4,6))"""
+        latent_vector = self.linear3(x)
+        x = self.actv(latent_vector)
+        x = self.linear4(x) 
+        x = self.actv(x)
+        x = self.linear5(x)
+        x = self.actv(x)
+        x = self.linear6(x)
+        #x = self.unflatten(x)
+        x = x.reshape((x.shape[0],32,14,24))"""
+
+        """###
+        x = self.conv2d1(x)
+        x = self.actv(x)
+        x = self.conv2d2(x)
+        x = self.actv(x)
+        x = self.conv1d(x)
+        x = self.actv(x)
+        height, width = x.shape[2], x.shape[3] 
+        latent_vector = x.flatten(1)
+        x = latent_vector.unflatten(1, torch.Size([1, height, width]))
+        x = self.conv1d_tr(x)
+        x = self.actv(x)
+        x = self.conv2d_tr1(x)
+        x = self.actv(x)
+        x = self.conv2d_tr2(x)
+        ###"""
         
-        out = self.decode(x) 
+        out = self.decode(x)
         #Added the ReLU activation to have only positive values in the output
         #as we are dealing with the depth values
         return out, x#None#latent_vector
