@@ -4,15 +4,21 @@ import torch
 
 import models as M
 
-encoder = M.Encoder()
+import torchvision
+
+import resnet_decoder as RD
+
+#encoder = M.Encoder()
+encoder = torchvision.models.resnet50()
+encoder.fc = torch.nn.Identity()
 decoder = M.Decoder()
 model = M.Autoencoder_conv(encoder, decoder)
 
 
-x = torch.randn(1, 1, 432, 768, requires_grad=True)
+x = torch.randn(1, 3, 512, 432, requires_grad=True)
 torch_out = model(x)
 
-exp = "exp19"
+exp = "encoder_resnet152"
 
 # Export the model
 torch.onnx.export(model,               # model being run
