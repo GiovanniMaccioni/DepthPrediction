@@ -1,1 +1,0 @@
-{'batch_size': 256, 'seed': 10, 'lr': 0.0008, 'sequence_length': 1, 'train_img_size': (256, 256), 'val_img_size': (256, 256), 'epochs': 125, 'loss_weigths': [1.0, 0.1, 0.1], 'scheduler': 'StepLR', 'scheduler_parameters': [20.0, 0.7], 'random_crop': False, 'dir_path': './runs_aut_fin/run19_avg', 'transforms': False, 'img_transform': True}
