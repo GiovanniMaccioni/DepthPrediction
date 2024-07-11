@@ -1,5 +1,9 @@
 __pycache__/
 data/
 wandb/
-onnx_models/*.onnx
+onnx_models/*
 mae/
+trash/
+run_*/
+runs_*/
+runs/
